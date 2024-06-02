@@ -1,4 +1,5 @@
 #!/bin/bash
 
+# run simulator
 ev3dev2simulator -m -t config_small 
 #ev3dev2simulator -m -t config_large 

@@ -1,2 +1,9 @@
 .DS_Store
 .vscode/
+.venv/
+
+# file patterns
+*~
+*.sw?
+old*
+tmp*

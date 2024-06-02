@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+script_dir=$(dirname $0)
+
+$script_dir/filltemplate $script_dir/config.bash $script_dir/Dockerfile.tpl
+$script_dir/filltemplate $script_dir/config.bash $script_dir/devcontainer.json.tpl
+
+

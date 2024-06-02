@@ -1,23 +1,29 @@
 #!/bin/bash
 
+# The script "entrypoint.sh" is run only once when the container starts.
+# This script each time you start a new RDP and desktop session, which can be multiple times in a container lifetime 
+# if you exit the desktop session and later reconnect with a new new RDP and desktop session. 
+
+
     
-# get screen size
-#----------------
+# # get screen size
+# #----------------
 sleep 0.1
 screenwidth=$(xrandr --current | grep '*' | uniq | awk '{print $1}' | cut -d 'x' -f1)
 screenheight=$(xrandr --current | grep '*' | uniq | awk '{print $1}' | cut -d 'x' -f2)
-
+# note: could be added to environment for openbox $HOME/.config/openbox/environment
 
 # xterm clipboard
 #-----------------
 
-# needed otherwise sharing clipboard between  the host of the RDP client and the terminal running in the RDP client does not work
-#. https://askubuntu.com/questions/237942/how-does-copy-paste-work-with-xterm
-#echo 'XTerm*selectToClipboard: true' > ~/.Xresources # this line also works ~~> using classname instead of instance name (=program name)
-# see: https://unix.stackexchange.com/questions/216723/xterm-or-xterm-in-configuration-file
+## needed otherwise sharing clipboard between  the host of the RDP client and the terminal running in the RDP client does not work
+##. https://askubuntu.com/questions/237942/how-does-copy-paste-work-with-xterm
+##echo 'XTerm*selectToClipboard: true' > ~/.Xresources # this line also works ~~> using classname instead of instance name (=program name)
+## see: https://unix.stackexchange.com/questions/216723/xterm-or-xterm-in-configuration-file
 echo 'xterm*selectToClipboard: true' > ~/.Xresources
 xrdb -merge ~/.Xresources
-
+## note: latter requires X running
+## => patch seems not needed anymore when using openbox
 
 # setup openbox
 # --------------
@@ -40,7 +46,9 @@ then
 fi
 
 # setup environment for openbox
-echo 'export PATH=$HOME/bin:$PATH' > $HOME/.config/openbox/environment
+# note: ~/.local/bin/ is location where python's pipx installs its programs
+echo 'export PATH=$HOME/bin/:$HOME/.local/bin/:$PATH' > $HOME/.config/openbox/environment
+
 
 # execute openbox window manager
 # ------------------------------

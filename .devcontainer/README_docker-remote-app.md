@@ -71,7 +71,7 @@ TCP port: 3389 (default)
 To log in, use the following default user account details:
 
 ```bash
-Username: robot
-Password: maker
+Username: ubuntu
+Password: ubuntu
 ```
 
