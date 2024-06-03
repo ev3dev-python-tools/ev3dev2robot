@@ -17,7 +17,7 @@ then (
     #     pip install -r requirements.txt
     # ) fi
     #pythonversion=$(python3 -c'import sys;print(sys.version_info.major,sys.version_info.minor,sep="");')
-    pythonversion=3.10
+    #pythonversion=3.10
     LOCKFILE="lockfile.python${PYTHONVERSION}-linux.txt"
     if [[ -e "$LOCKFILE" ]]
     then 
@@ -28,6 +28,7 @@ then (
            
     # make bash logins by default start activated	
     echo 'source /workspace/.venv/bin/activate' >> ~/.bashrc
+    echo 'cd /workspace/' >> ~/.bashrc
 ) fi
 
 # open ev3dev2simulator port also to outside world
@@ -50,3 +51,4 @@ then (
 # Forward external port to service listening only on a internal port with socat:
 IPADDR=$(hostname -I)
 socat tcp-l:6840,fork,reuseaddr,bind=$IPADDR tcp:127.0.0.1:6840	 &
+socat tcp-l:6841,fork,reuseaddr,bind=$IPADDR tcp:127.0.0.1:6841	 &

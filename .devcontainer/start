@@ -7,10 +7,10 @@ source "$script_dir/config.bash"
 docker run --detach \
     --rm \
     --hostname="$CONFIG_CONTAINER" \
-    --publish="127.0.0.1:$CONFIG_HOSTPORT:3389/tcp" \
-    --publish="127.0.0.1:6840:6840/tcp" \
+    --publish="127.0.0.1:$CONFIG_HOSTPORT_RDP:3389/tcp" \
+    --publish="127.0.0.1:$CONFIG_HOSTPORT_EV3DEV2:6840/tcp" \
+    --publish="127.0.0.1:$CONFIG_HOSTPORT_BLUETOOTH:6841/tcp" \
     --name="$CONFIG_CONTAINER" \
     --mount type=bind,source="$projectdir",target="/workspace" \
     "$CONFIG_IMAGE"
 
-#ssh -L 6840:172.17.0.2:6840 172.17.0.2

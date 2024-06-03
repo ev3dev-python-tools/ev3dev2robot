@@ -63,6 +63,7 @@ ENV SESPASSWD=$SESPASSWD
 #           the dockerhost  localhost:port. The port becomes then internal on dockerhost.
 #           We are basicly forwarding an internal container port  to and internal port on the docker host.
 # - software-properties-common: to install add-apt-repository to allow adding other repositories
+# - wget: to download files from the internet; e.g. can be used to install pixp
 RUN apt-get update \
     && DEBIAN_FRONTEND="noninteractive" apt-get install -y --no-install-recommends \
         locales \
@@ -87,6 +88,7 @@ RUN apt-get update \
         gettext-base \
         socat \
         software-properties-common \
+        wget \
     && rm -rf /var/lib/apt/lists/*
 
 
@@ -157,57 +159,46 @@ RUN mkdir -p /home/$SESUSER/sound
 COPY resources/sound/left_right.wav /home/$SESUSER/sound/left_right.wav
 
 
-
-#-----------------------------------------------------------------------------------------------------------------------------
-# update system python to be ready for development
-#-----------------------------------------------------------------------------------------------------------------------------
-
-# IMPORTANT
-#
-# NEVER develop in the system python environment itself, because it
-# can break system packages dependent on the system python and its modules.
-# That's the reason why we do not install python3-pip package.
-# When doing something with the python distribution we must always use a venv:  
-#     - for python projects use  a venv to make a sandbox environment within the project using its internal pip 
-#     - to install python tools use pipx  to install a python tool in its own sandboxed venv
-#
-# For ubuntu 20.04 the system python is python3.8
-#
-# We install python3-venv and python3-dev packages so that we optionally 
-# also can develop in the system's python3 in a VIRTUAL ENVIRONMENT! 
-RUN sudo apt-get update \
-    && DEBIAN_FRONTEND="noninteractive" apt-get install -y  \
-        python3-venv \
-        python3-dev \
-    && rm -rf /var/lib/apt/lists/*
-
-#-----------------------------------------------------------------------------------------------------------------------------
-#  Install pipx using system's python3.
-#-----------------------------------------------------------------------------------------------------------------------------
-
-
-# Install pipx using system's python3. (which we NEVER change, see previous point)
-# We do not use 'apt-get install -y pipx' because that installs an old version of pipx which we cannot upgrade.
-# We install pipx using pip to make sure we got latest version of pipx.
-# To install pipx we temporary install pip to use it to install pipx and then remove it again.
-# We do not want to keep pip installed, because it can break system packages dependent on the system python and its modules. 
-RUN sudo apt-get update \
-    && DEBIAN_FRONTEND="noninteractive" apt-get install -y  \
-        python3-pip \
-    && pip install pipx \
-    && apt-get purge -y python3-pip \
-    && rm -rf /var/lib/apt/lists/*    
-
-
 #-----------------------------------------------------------------------------------------------------------------------------
 #  Install pythonX.Y for development
 #-----------------------------------------------------------------------------------------------------------------------------
 
-ENV PYTHONVERSION="3.8"
+# IMPORTANT
+#    NEVER develop in a python distribution directly, but develop in a virtual environment using venv. 
+#    Because then each python project is GUARANTEED to start with the standard distribution, and what 
+#    is extra needed for the project can be specified as dependency in pyproject.toml and installed 
+#    with pip-tools locally in that virtual environment not bothering other python projects!
+#    SURELY NEVER develop in the system's python distribution directly, because updating/installing
+#    packages with pip there can break system packages dependent on the system's python and its modules!!
+#   
+# That's the reason why we do not install python3-pip package.
+# When doing something with the python distribution we must always use a venv:  
+#     - for python projects use  a venv to make a sandbox environment within the project using its internal pip 
+#     - to install python tools use pipx to install a python tool in its own sandboxed venv
+
+# Ubuntu standard ppa repositories come only with only one, or maybe two python distributions. If you need
+# another version you can fetch it from the deadsnakes ppa. The deadsnakes ppa provides many python versions,
+# except the one already coming with ubuntu's standard ppa, which prevents conflicts between ppa's.
+# Just add the deadsnakes ppa, and you can just install the python version you need. You then don't 
+# need to bother whether it comes from ubuntu's standard ppa or deadsnake ppa.
+# Note: a python distribution from ubuntu's standard ppa prevents you from installing pip using
+#       the ensurepip module, but deadsnakes doesn't. The reason is that modifying a systems' python
+#       with pip can break the system. However ubuntu still allows it with the python-pip apt package.
+#       As specified above we also discourage using pip to change a python distribution in general,
+#       causing that we do not need pip. So for our usage a python distribution from ubuntu or deadsnakes
+#       are basicly the same for installing and using. (still have small not important differences
+#       like ubuntu using dist-packages and deadsnakes using site-packages.)
+RUN add-apt-repository ppa:deadsnakes/ppa 
+
+ENV PYTHONVERSION="3.10"
 
 
 # Install pythonX.Y for development
 # - pythonX.Y-full : full installation of pythonX.Y
+#   installs pythonX.Y at:  
+#     /usr/lib/pythonX.Y
+#     /usr/share/doc/pythonX.Y
+#     /usr/local/lib/pythonX.Y
 # - pythonX.Y-dev : python c-headers to compile c-extensions
 # - pythonX.Y does not have pip installed because we should not modify the distribution directly,
 #   instead it comes with the venv module already installed,
@@ -215,31 +206,47 @@ ENV PYTHONVERSION="3.8"
 #     $ pythonX.Y -mvenv .venv
 #     $ source .venv/bin/activate
 #     $ pip install ...        -> install in local virtual environment in project
-RUN add-apt-repository ppa:deadsnakes/ppa \
-    && sudo apt-get update \
+RUN apt-get update \
     && DEBIAN_FRONTEND="noninteractive" apt-get install -y  \
         python${PYTHONVERSION}-full \
         python${PYTHONVERSION}-dev  \
     && rm -rf /var/lib/apt/lists/* 
 
-# NOTE: if we really need pip for directly changing the distribution, we can install it as follows:    
+# NOTE: if we really need pip for directly changing the distribution, we can install it as follows:   
+#       Only for deadsnake's pythons, for ubuntu's pythons we must install the python-pip apt package.
 #    && python -m ensurepip --upgrade \
 #    && python -m pip  install --upgrade pip 
 
-# installs pythonX.Y at: 
-#   /usr/lib/pythonX.Y
-#   /usr/share/doc/pythonX.Y
-#   /usr/local/lib/pythonX.Y  dist-packages
 
-# IMPORTANT do not change the default python version with the alternative tool on the linux system because 
-#           it can break python scripts in system packages which use /usr/bin/python3 thinking it is the 
-#           system's python with specific versions of modules/packages. A system package can break by a 
-#           different version of a python package for which it is not tested.
-#           However as end-user you can change your default python version locally by changing the PATH 
-#           environment variable such that its path points to desired python version first!
-#           This doesn't change the system's python version in /usr/bin/python3 !!
+# IMPORTANT 
+#   ALSO do not change the default python version with the alternative tool on the linux system because 
+#   it can break python scripts in system packages which use /usr/bin/python3 thinking it is the 
+#   system's python with specific versions of modules/packages. A system package can break by a 
+#   different version of a python package for which it is not tested.
+#   However as end-user you can change your default python version locally by changing the PATH 
+#   environment variable such that its path points to desired python version first!
+#   This doesn't change the system's python version in /usr/bin/python3 !!
 
-# 
+
+#-----------------------------------------------------------------------------------------------------------------------------
+#  Install pipx 
+#-----------------------------------------------------------------------------------------------------------------------------
+
+# Install pipx using a zipapp which uses the system's python.
+# Works on any python 3.7 or newer, and can install a python tool on the system using any python distribution installed.
+# Advantage of this way of installing is that we do not need to install pip on the system.
+# note: it is adviced to not install pip on system because an installed  python distribution should never be changed;
+#       one should use venv for a sandboxed environment to do changes locally without changing the actual distribution.
+RUN wget https://github.com/pypa/pipx/releases/download/1.5.0/pipx.pyz -O /usr/local/bin/pipx  && chmod a+x /usr/local/bin/pipx
+
+# For ubuntu 20.04 the system python is python3.8
+# We need the system's python venv package to be installed otherwise pipx, which uses system's python, does not work.
+RUN apt-get update \
+    && DEBIAN_FRONTEND="noninteractive" apt-get install -y  \
+        python3-venv \
+    && rm -rf /var/lib/apt/lists/* 
+
+
 #-----------------------------------------------------------------------------------------------------------------------------
 # install gui program in /home/$SESUSER/bin : ev3dev2simulator
 #-----------------------------------------------------------------------------------------------------------------------------
@@ -281,7 +288,6 @@ RUN sudo apt-get update \
         
 # install ev3dev2simulator with pipx in SESUSER homedir independent of system's python using python ${PYTHONVERSION}   
 RUN su -c "pipx install --python python${PYTHONVERSION} ev3dev2simulator==2.0.10" $SESUSER
-# note: ev3dev2simulator==2.0.6  broken on python3.8 -> pyglet library breaks on some version parsing ?? -> still seems same pyglet version -> maybe opengl on system changed???
 # note: in startwm.sh we add for SESUSER the ~/.local/bin/ to PATH. This is where pipx installs the ev3dev2simulator.
 
 # we made wrapper script around ev3dev2simulator so end user can easily change its configuration (options)

@@ -51,7 +51,7 @@
   //                  In that case use forwardPorts. But I prefer using fixing
   //                  the service to listen to all interfaces so that we can
   //                  also start the container with only docker and not needing vscode.
-  "appPort": [${CONFIG_HOSTPORT},6840],
+  "appPort": [${CONFIG_HOSTPORT_RDP}, ${CONFIG_HOSTPORT_EV3DEV2}, ${CONFIG_HOSTPORT_BLUETOOTH}],
   //"forwardPorts": [6840], -> we forward external port to internal port with socat so that we can launch container also without vscode
   // Configure tool-specific properties.
   "customizations": {
