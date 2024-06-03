@@ -309,10 +309,10 @@ RUN chown -R $SESUSER:$SESUSER /home/$SESUSER/bin
 
 
 #-----------------------------------------------------------------------------------------------------------------------------
-# launch xrdp server to which RDP clients can connect on port 3389 
+# launch xrdp server to which RDP clients can connect on port 6389 
 #-----------------------------------------------------------------------------------------------------------------------------
 
-EXPOSE 3389/tcp
+EXPOSE 6389/tcp
 #ENTRYPOINT ["/usr/bin/entrypoint"]
 ENTRYPOINT ["/etc/xrdp/entrypoint.sh"]
 # note: we put all start scrips in one location at /etc/xrdp/
