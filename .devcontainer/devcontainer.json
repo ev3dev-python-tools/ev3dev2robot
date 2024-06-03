@@ -19,7 +19,7 @@
     //    },
     //"options": [ "--tag=img-ev3dev2robot" ] ->  will add extra tag next to vscodes one set by 'image' above
   },
-  "remoteUser": "${user}",
+  "remoteUser": "robot",
   "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached", 
   "workspaceFolder": "/workspace",
 

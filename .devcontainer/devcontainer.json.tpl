@@ -19,7 +19,7 @@
     //    },
     //"options": [ "--tag=${CONFIG_IMAGE}" ] ->  will add extra tag next to vscodes one set by 'image' above
   },
-  "remoteUser": "${user}",
+  "remoteUser": "${CONFIG_USER}",
   "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached", 
   "workspaceFolder": "/workspace",
 
