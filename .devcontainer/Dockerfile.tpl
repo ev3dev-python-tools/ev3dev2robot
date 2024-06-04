@@ -298,6 +298,11 @@ RUN ln -r -s  /workspace/ /home/$SESUSER/workspace
 # if you also install relaunch then the gui program will be automatically relaunched on exit (by startwm.sh)
 COPY resources/bin/relaunch-gui-program  /home/$SESUSER/bin/relaunch-gui-program
 
+# the simulator exposes sockets for the simulated ev3dev2 and pybluez api. 
+# Client robot programs running on the host can connect to these ports to use the simulator.  
+# However most people will use the vscode devcontainer on connect to these ports internally on localhost:6840 and localhost:6841.
+EXPOSE 6840/tcp
+EXPOSE 6841/tcp
 
 #-----------------------------------------------------------------------------------------------------------------------------
 # fix owner permissions for $SESUSER, because everything was copied into /home/$SESUSER as root user
@@ -309,11 +314,12 @@ RUN chown -R $SESUSER:$SESUSER /home/$SESUSER/bin
 
 
 #-----------------------------------------------------------------------------------------------------------------------------
-# launch xrdp server to which RDP clients can connect on port ${CONFIG_HOSTPORT_RDP} 
+# launch xrdp server to which RDP clients can connect on port 3389
 #-----------------------------------------------------------------------------------------------------------------------------
 
-EXPOSE ${CONFIG_HOSTPORT_RDP}/tcp
-#ENTRYPOINT ["/usr/bin/entrypoint"]
+EXPOSE 3389/tcp
+
+
 ENTRYPOINT ["/etc/xrdp/entrypoint.sh"]
 # note: we put all start scrips in one location at /etc/xrdp/
 
