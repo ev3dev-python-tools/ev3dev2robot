@@ -3,5 +3,5 @@
 script_dir=$(dirname $0)
 source "$script_dir/config.bash"
 
-docker exec -u $user -w /workspace -it "$CONFIG_CONTAINER" bash;
+docker exec -u $CONFIG_USER -w /home/$CONFIG_USER/pyproject/src -it "$CONFIG_CONTAINER" bash;
 

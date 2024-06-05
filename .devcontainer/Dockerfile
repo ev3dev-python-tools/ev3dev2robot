@@ -122,7 +122,7 @@ COPY resources/scripts/entrypoint.sh /etc/xrdp/entrypoint.sh
 #      We can use this script to run a forward from an external port to an internal port used by a server listening only on an internal port.
 #      With this forward inplace we can publish this service to docker host listening only on internal port on docker's host,
 #      so we can connect to this application from outside the container on the docker's host!
-COPY resources/scripts/entrypoint_user.sh /etc/xrdp/entrypoint_user.sh
+#COPY resources/scripts/entrypoint_user.sh /etc/xrdp/entrypoint_user.sh
 
 # add custom xrdp session in startwm.sh (run with credentials of user who logs in) 
 # run as user who logs in; run at every xrdp session, which can be multiple times in container lifetime
@@ -255,7 +255,7 @@ RUN apt-get update \
 # - build-essential: provides c-compiler ; eg. to build python c-extensions
 # - libasound2-dev: development package for ALSA sound system linux; needed to compile simpleaudio package which builds on ALSA.
 # - alsa-utils espeak libespeak1 : system libraries needed for the the python pyttsx3 speech library
-RUN sudo apt-get update \
+RUN apt-get update \
     && DEBIAN_FRONTEND="noninteractive" apt-get install -y  \
         build-essential libasound2-dev \     
         alsa-utils espeak  libespeak1 \
@@ -264,7 +264,7 @@ RUN sudo apt-get update \
 # NOTES:    
 # - espeak not required, but does not give conflict, and can be convenient on the commandline
 # - for py3-tts we also need alsa-utils package which supplies the  aplay tool which is needed for pyttsx3  
-#     sudo apt-get install alsa-utils
+#       apt-get install alsa-utils
 # - https://github.com/thevickypedia/py3-tts
 #     says ffmpeg package is required
 #
@@ -304,6 +304,19 @@ COPY resources/bin/relaunch-gui-program  /home/$SESUSER/bin/relaunch-gui-program
 EXPOSE 6840/tcp
 EXPOSE 6841/tcp
 
+
+#-----------------------------------------------------------------------------------------------------------------------------
+# setup python project's venv and vscode debug config in $SESUSER's homedir
+#-----------------------------------------------------------------------------------------------------------------------------
+
+COPY pyproject   /home/$SESUSER/pyproject
+RUN  mkdir -p /home/$SESUSER/.config/Code
+COPY resources/vscode  /home/$SESUSER/.config/Code/User
+RUN chown -R $SESUSER:$SESUSER  /home/$SESUSER/pyproject  /home/$SESUSER/.config/
+# note: '-' makes su run as login shell, so that command is run in home directory of $SESUSER
+RUN su - -c "cd pyproject/;source pyproject.bash reactivate -l lockfile.python${PYTHONVERSION}-linux.txt"  $SESUSER
+
+
 #-----------------------------------------------------------------------------------------------------------------------------
 # fix owner permissions for $SESUSER, because everything was copied into /home/$SESUSER as root user
 #-----------------------------------------------------------------------------------------------------------------------------
@@ -319,6 +332,9 @@ RUN chown -R $SESUSER:$SESUSER /home/$SESUSER/bin
 
 EXPOSE 3389/tcp
 
+RUN sed -i 's/thinclient_drives/\/tmp\/thinclient_drives/g' /etc/xrdp/sesman.ini
+
+COPY resources/scripts/entrypoint_user.sh /etc/xrdp/entrypoint_user.sh
 
 ENTRYPOINT ["/etc/xrdp/entrypoint.sh"]
 # note: we put all start scrips in one location at /etc/xrdp/

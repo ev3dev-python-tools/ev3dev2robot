@@ -1,35 +1,27 @@
 #!/usr/bin/env bash
 
 
-# setup venv for python project if not yet setup in /workspace mount
-# -----------------------------------------------------------------
-if [[ -d /workspace/ ]]
-then (
-    cd  /workspace
-    # if [[ ! -d /workspace/.venv ]]
-    # then  (
-    #     # create venv
-    #     cd /workspace
-    #     python3 -m venv .venv
-    #     # activate venv to install requirements.txt
-    #     source .venv/bin/activate
-    #     #pip install pip-tools
-    #     pip install -r requirements.txt
-    # ) fi
-    #pythonversion=$(python3 -c'import sys;print(sys.version_info.major,sys.version_info.minor,sep="");')
-    #pythonversion=3.10
-    LOCKFILE="lockfile.python${PYTHONVERSION}-linux.txt"
-    if [[ -e "$LOCKFILE" ]]
-    then 
-        source pyproject.bash reactivate -l "$LOCKFILE"
-    else 
-        source pyproject.bash setup -p ${PYTHONVERSION} -l "$LOCKFILE"
-    fi
-           
-    # make bash logins by default start activated	
-    echo 'source /workspace/.venv/bin/activate' >> ~/.bashrc
-    echo 'cd /workspace/' >> ~/.bashrc
-) fi
+# activate  ~/pyproject/src mount in bashrc only if mounted 
+# ---------------------------------------------------------
+
+
+# make bash logins by default start activated
+echo 'source ~/pyproject/.venv/bin/activate' >> ~/.bashrc
+echo 'cd ~/pyproject/src/' >> ~/.bashrc
+
+# copy user's configured launch.json to projects .vscode/ config folder
+if [[ ! -r  ~/pyproject/src/.vscode/launch.json ]]
+then
+    mkdir -p ~/pyproject/src/.vscode
+    cp ~/.config/Code/User/launch.json ~/pyproject/src/.vscode/
+fi
+
+# if [[ -d ~/pyproject/src/ ]]
+# then (
+#     # make bash logins by default start activated
+#     echo 'source ~/pyproject/.venv/bin/activate' >> ~/.bashrc
+#     echo 'cd ~/pyproject/src/' >> ~/.bashrc
+# ) fi
 
 # open ev3dev2simulator port also to outside world
 # -------------------------------------------------------------------------------------------------------------------

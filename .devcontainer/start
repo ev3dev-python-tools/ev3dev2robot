@@ -11,6 +11,7 @@ docker run --detach \
     --publish="127.0.0.1:$CONFIG_HOSTPORT_EV3DEV2:6840/tcp" \
     --publish="127.0.0.1:$CONFIG_HOSTPORT_BLUETOOTH:6841/tcp" \
     --name="$CONFIG_CONTAINER" \
-    --mount type=bind,source="$projectdir",target="/workspace" \
+    --mount type=bind,source="$projectdir",target="/home/$CONFIG_USER/pyproject/src" \
     "$CONFIG_IMAGE"
 
+# --mount type=bind,source="$projectdir",target="/workspace" \

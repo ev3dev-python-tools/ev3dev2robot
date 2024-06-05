@@ -20,9 +20,10 @@
     //"options": [ "--tag=img-ev3dev2robot" ] ->  will add extra tag next to vscodes one set by 'image' above
   },
   "remoteUser": "robot",
-  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached", 
-  "workspaceFolder": "/workspace",
-
+  //"workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached", 
+  //"workspaceFolder": "/workspace",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/home/robot/pyproject/src,type=bind,consistency=cached", 
+  "workspaceFolder": "/home/robot/pyproject/src",
   // https://containers.dev/implementors/json_reference/#publishing-vs-forwarding-ports
   // https://code.visualstudio.com/docs/devcontainers/containers#_forwarding-or-publishing-a-port
   //  Docker has the concept of “publishing” ports when the container is created. 
@@ -58,17 +59,48 @@
     // Configure properties specific to VS Code.
     // note: ms-python.python installs dependencies "ms-python.debugpy" and "ms-python.vscode-pylance"	
     "vscode": {
-      "settings": {},
+      "settings": {
+        "python.venvPath": "/home/robot/pyproject",
+        "python.defaultInterpreterPath": "/home/robot/pyproject/.venv/bin/python",
+        "files.exclude": {
+          "**/.git": true,
+          "**/.svn": true,
+          "**/.hg": true,
+          "**/CVS": true,
+          "**/.DS_Store": true,
+          "**/Thumbs.db": true,
+          "**/.*": true,
+          "**/.devcontainer": true,
+          "**/.vscode": true,
+          "**/.gitignore": true
+        }
+      },
       "extensions": [
         "streetsidesoftware.code-spell-checker",
-              "ms-python.python" 
-      ]
+        "ms-python.python",
+        "tamasfe.even-better-toml",
+        "PeterSchmalfeldt.explorer-exclude",
+        "amodio.toggle-excluded-files"
+      ],
+      // explorer-exclude: lets you easily edit in pane which files hidden
+      // toggle-excluded-files: gives you nice button on top of explorer which lets you toggle hidden or not
+      "launch": {
+            // Use IntelliSense to learn about possible attributes.
+            // Hover to view descriptions of existing attributes.
+            // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+            "version": "0.2.0",
+            "configurations": [
+                {
+                    "name": "Python Debugger: Current File",
+                    "type": "debugpy",
+                    "request": "launch",
+                    "program": "${file}",
+                    "console": "integratedTerminal"
+                }
+            ]
+        }
     }
   }
   // Use 'postCreateCommand' to run commands after the container is created.
- // "postCreateCommand": "pip3 install -r requirements.txt"
   //"postCreateCommand": "id > /tmp/id.txt"
- // "postCreateCommand": "id > /workspace/id.txt"
-
- 
 }
